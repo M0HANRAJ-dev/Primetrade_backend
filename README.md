@@ -1,0 +1,215 @@
+# Primetrade Backend API
+
+A scalable REST API with JWT authentication and role-based access control, built with Django REST Framework.
+
+---
+
+## Tech Stack
+
+- **Backend:** Django 5.2, Django REST Framework
+- **Auth:** JWT via `djangorestframework-simplejwt`
+- **Database:** SQLite (dev) — easily swappable to PostgreSQL
+- **Docs:** Swagger UI via `drf-yasg`
+- **Security:** CORS headers, password hashing, input validation, API rate limiting
+
+---
+
+## Project Structure
+
+```
+Primetrade_backend/
+├── Primetrade_backend/     # Project config (settings, urls)
+├── users/                  # User registration, login, profile
+├── tasks/                  # Task CRUD with role-based access
+├── manage.py
+└── requirements.txt
+```
+
+---
+
+## Setup & Installation
+
+### 1. Clone the repository
+```bash
+git clone https://github.com/your-username/primetrade-backend.git
+cd primetrade-backend
+```
+
+### 2. Create and activate virtual environment
+```bash
+python -m venv venv
+
+# Windows
+venv\Scripts\activate
+
+# macOS/Linux
+source venv/bin/activate
+```
+
+### 3. Install dependencies
+```bash
+pip install -r requirements.txt
+```
+
+### 4. Create a `.env` file in the root directory
+```env
+SECRET_KEY=your-secret-key-here
+DEBUG=True
+```
+
+### 5. Run migrations
+```bash
+python manage.py makemigrations
+python manage.py migrate
+```
+
+### 6. Create a superuser (admin)
+```bash
+python manage.py createsuperuser
+```
+
+### 7. Start the server
+```bash
+python manage.py runserver
+```
+
+Server runs at `http://localhost:8000`
+
+---
+
+## API Endpoints
+
+### Auth & Users — `/api/v1/users/`
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/api/v1/users/register/` | Register a new user | No |
+| POST | `/api/v1/users/login/` | Login and get JWT tokens | No |
+| POST | `/api/v1/users/token/refresh/` | Refresh access token | No |
+| GET | `/api/v1/users/profile/` | Get current user profile | Yes |
+
+### Tasks — `/api/v1/tasks/`
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/api/v1/tasks/` | List tasks (own tasks / all if admin) | Yes |
+| POST | `/api/v1/tasks/` | Create a new task | Yes |
+| GET | `/api/v1/tasks/{id}/` | Get a specific task | Yes |
+| PUT | `/api/v1/tasks/{id}/` | Update a task | Yes (owner/admin) |
+| PATCH | `/api/v1/tasks/{id}/` | Partially update a task | Yes (owner/admin) |
+| DELETE | `/api/v1/tasks/{id}/` | Delete a task | Yes (owner/admin) |
+
+---
+
+## Authentication
+
+This API uses **JWT (JSON Web Tokens)**.
+
+1. Register or login to get `access` and `refresh` tokens
+2. Include the access token in all protected requests:
+
+```
+Authorization: Bearer <access_token>
+```
+
+- Access token expires in **1 hour**
+- Refresh token expires in **7 days**
+
+---
+
+## Role-Based Access
+
+| Role | Permissions |
+|------|-------------|
+| `user` | CRUD on own tasks only |
+| `admin` | CRUD on all tasks |
+
+Set `is_admin: true` during registration to create an admin user.
+
+---
+
+## API Documentation
+
+Interactive Swagger UI available at:
+
+```
+http://localhost:8000/swagger/
+```
+
+ReDoc available at:
+
+```
+http://localhost:8000/redoc/
+```
+
+---
+
+## Example Requests
+
+### Register
+```json
+POST /api/v1/users/register/
+{
+  "username": "john",
+  "email": "john@example.com",
+  "password": "SecurePass123!",
+  "is_admin": false
+}
+```
+
+### Login
+```json
+POST /api/v1/users/login/
+{
+  "username": "john",
+  "password": "SecurePass123!"
+}
+```
+
+### Create Task
+```json
+POST /api/v1/tasks/
+Authorization: Bearer <access_token>
+
+{
+  "title": "My first task",
+  "description": "Task description here",
+  "completed": false
+}
+```
+
+---
+
+## Scalability Notes
+
+- **Modular structure** — new apps (e.g., `products`, `notes`) can be added independently
+- **Database** — swap SQLite for PostgreSQL by updating `DATABASES` in `settings.py`
+- **Caching** — Redis can be integrated with `django-redis` for caching querysets
+- **Rate limiting** — API throttling configured (20 req/min anon, 100 req/min user)
+- **Docker** — containerize with a `Dockerfile` + `docker-compose.yml` for easy deployment
+- **Load balancing** — stateless JWT auth makes horizontal scaling straightforward behind a load balancer (e.g., AWS ALB)
+- **Microservices** — users and tasks apps are decoupled and can be extracted into separate services
+
+---
+
+## Security Practices
+
+- Passwords hashed using Django's PBKDF2 algorithm
+- JWT tokens with short expiry (1 hour access)
+- Input validation via DRF serializers
+- CORS configured
+- API rate limiting to prevent abuse
+- `SECRET_KEY` should be stored in `.env` (never committed to git)
+
+---
+
+## .gitignore Recommendations
+
+Make sure these are in your `.gitignore`:
+```
+venv/
+.env
+db.sqlite3
+__pycache__/
+*.pyc
+```
