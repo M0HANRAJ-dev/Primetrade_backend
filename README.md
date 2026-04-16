@@ -1,79 +1,74 @@
-# Primetrade Backend API
+# Primetrade – Full Stack Task Manager
 
-A scalable REST API with JWT authentication and role-based access control, built with Django REST Framework.
+A scalable REST API with JWT authentication and role-based access control, built with Django REST Framework + React frontend.
 
 ---
 
 ## Tech Stack
 
-- **Backend:** Django 5.2, Django REST Framework
-- **Auth:** JWT via `djangorestframework-simplejwt`
-- **Database:** SQLite (dev) — easily swappable to PostgreSQL
-- **Docs:** Swagger UI via `drf-yasg`
-- **Security:** CORS headers, password hashing, input validation, API rate limiting
+| Layer | Tech |
+|-------|------|
+| Backend | Django 5.2, Django REST Framework |
+| Auth | JWT via `djangorestframework-simplejwt` |
+| Database | SQLite (dev) — swappable to PostgreSQL |
+| Docs | Swagger UI via `drf-yasg` |
+| Frontend | React + Vite, Axios |
+| Security | CORS, password hashing, input validation, rate limiting |
 
 ---
 
 ## Project Structure
 
 ```
-Primetrade_backend/
-├── Primetrade_backend/     # Project config (settings, urls)
+├── manage.py
+├── requirements.txt
+├── README.md
+├── Primetrade_backend/     # Django config (settings, urls)
 ├── users/                  # User registration, login, profile
 ├── tasks/                  # Task CRUD with role-based access
-├── manage.py
-└── requirements.txt
+└── frontend/               # React app (Vite)
+    └── src/
+        ├── api.js          # Axios instance with JWT interceptor
+        ├── App.jsx
+        └── pages/
+            ├── Login.jsx
+            ├── Register.jsx
+            └── Dashboard.jsx
 ```
 
 ---
 
-## Setup & Installation
+## Backend Setup
 
-### 1. Clone the repository
 ```bash
 git clone https://github.com/your-username/primetrade-backend.git
 cd primetrade-backend
-```
 
-### 2. Create and activate virtual environment
-```bash
 python -m venv venv
+venv\Scripts\activate        # Windows
+source venv/bin/activate     # macOS/Linux
 
-# Windows
-venv\Scripts\activate
-
-# macOS/Linux
-source venv/bin/activate
-```
-
-### 3. Install dependencies
-```bash
 pip install -r requirements.txt
-```
 
-### 4. Create a `.env` file in the root directory
-```env
-SECRET_KEY=your-secret-key-here
-DEBUG=True
-```
-
-### 5. Run migrations
-```bash
 python manage.py makemigrations
 python manage.py migrate
-```
-
-### 6. Create a superuser (admin)
-```bash
 python manage.py createsuperuser
-```
-
-### 7. Start the server
-```bash
 python manage.py runserver
 ```
 
-Server runs at `http://localhost:8000`
+Backend runs at `http://localhost:8000`
+
+---
+
+## Frontend Setup
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Frontend runs at `http://localhost:5173`
 
 ---
 
@@ -92,7 +87,7 @@ Server runs at `http://localhost:8000`
 
 | Method | Endpoint | Description | Auth Required |
 |--------|----------|-------------|---------------|
-| GET | `/api/v1/tasks/` | List tasks (own tasks / all if admin) | Yes |
+| GET | `/api/v1/tasks/` | List tasks (own / all if admin) | Yes |
 | POST | `/api/v1/tasks/` | Create a new task | Yes |
 | GET | `/api/v1/tasks/{id}/` | Get a specific task | Yes |
 | PUT | `/api/v1/tasks/{id}/` | Update a task | Yes (owner/admin) |
@@ -103,10 +98,7 @@ Server runs at `http://localhost:8000`
 
 ## Authentication
 
-This API uses **JWT (JSON Web Tokens)**.
-
-1. Register or login to get `access` and `refresh` tokens
-2. Include the access token in all protected requests:
+Uses **JWT (JSON Web Tokens)**.
 
 ```
 Authorization: Bearer <access_token>
@@ -114,6 +106,7 @@ Authorization: Bearer <access_token>
 
 - Access token expires in **1 hour**
 - Refresh token expires in **7 days**
+- Token is automatically refreshed via Axios interceptor
 
 ---
 
@@ -130,17 +123,8 @@ Set `is_admin: true` during registration to create an admin user.
 
 ## API Documentation
 
-Interactive Swagger UI available at:
-
-```
-http://localhost:8000/swagger/
-```
-
-ReDoc available at:
-
-```
-http://localhost:8000/redoc/
-```
+- Swagger UI: `http://localhost:8000/swagger/`
+- ReDoc: `http://localhost:8000/redoc/`
 
 ---
 
@@ -187,7 +171,7 @@ Authorization: Bearer <access_token>
 - **Caching** — Redis can be integrated with `django-redis` for caching querysets
 - **Rate limiting** — API throttling configured (20 req/min anon, 100 req/min user)
 - **Docker** — containerize with a `Dockerfile` + `docker-compose.yml` for easy deployment
-- **Load balancing** — stateless JWT auth makes horizontal scaling straightforward behind a load balancer (e.g., AWS ALB)
+- **Load balancing** — stateless JWT auth works behind a load balancer (e.g., AWS ALB)
 - **Microservices** — users and tasks apps are decoupled and can be extracted into separate services
 
 ---
@@ -196,20 +180,8 @@ Authorization: Bearer <access_token>
 
 - Passwords hashed using Django's PBKDF2 algorithm
 - JWT tokens with short expiry (1 hour access)
+- Automatic token refresh via Axios interceptor
 - Input validation via DRF serializers
 - CORS configured
 - API rate limiting to prevent abuse
-- `SECRET_KEY` should be stored in `.env` (never committed to git)
-
----
-
-## .gitignore Recommendations
-
-Make sure these are in your `.gitignore`:
-```
-venv/
-.env
-db.sqlite3
-__pycache__/
-*.pyc
-```
+- `SECRET_KEY` stored in `.env` (never committed to git)
